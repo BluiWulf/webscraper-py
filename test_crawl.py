@@ -150,5 +150,155 @@ class TestCrawl(unittest.TestCase):
         actual = get_images_from_html(html, "https://crawler-test.com")
         self.assertEqual(actual, expected)
 
+    def test_extract_page_data_one(self):
+        input_url  = "https://crawler-test.com"
+        input_html = '''
+            <html>
+                <body>
+                    <h1>This is the first header</h1>
+                    <p>This is text from first paragraph.</p>
+                    <main>
+                        <h2>This is the second header</h2>
+                        <p>This is more text from second paragraph.</p>
+                    </main>
+                    <a href="/urltest">Go to Boot.dev</a>
+                    <img src="/logo.png" alt="Boot.dev Logo" />
+                </body>
+            </html>
+        '''
+        html = BeautifulSoup(input_html, 'html.parser')
+        expected = {
+            "url": "https://crawler-test.com",
+            "heading": "This is the first header",
+            "first_paragraph": "This is more text from second paragraph.",
+            "outgoing_links": ["https://crawler-test.com/urltest"],
+            "image_urls": ["https://crawler-test.com/logo.png"]
+        }
+        actual = extract_page_data(html, input_url)
+        self.assertEqual(actual, expected)
+
+    def test_extract_page_data_two(self):
+        input_url  = "https://random-url.com"
+        input_html = '''
+            <html>
+                <body>
+                    <h1>This is the first header</h1>
+                    <p>This is text from first paragraph.</p>
+                    <a src="/urltest">Go to Boot.dev</a>
+                    <img href="/logo.png" alt="Boot.dev Logo" />
+                </body>
+            </html>
+        '''
+        html = BeautifulSoup(input_html, 'html.parser')
+        expected = {
+            "url": "https://random-url.com",
+            "heading": "This is the first header",
+            "first_paragraph": "This is text from first paragraph.",
+            "outgoing_links": [],
+            "image_urls": []
+        }
+        actual = extract_page_data(html, input_url)
+        self.assertEqual(actual, expected)
+
+    def test_extract_page_data_three(self):
+        input_url  = "https://anothertesturl.com"
+        input_html = '''
+            <html>
+                <body>
+                    <main>
+                        <h1>This is the first header</h1>
+                        <p>This is text from first paragraph.</p>
+                    </main>
+                    <h2>This is the second header</h1>
+                    <a href="/urltest">Go to Boot.dev</a>
+                    <img href="/logo.png" alt="Boot.dev Logo" />
+                </body>
+            </html>
+        '''
+        html = BeautifulSoup(input_html, 'html.parser')
+        expected = {
+            "url": "https://anothertesturl.com",
+            "heading": "This is the first header",
+            "first_paragraph": "This is text from first paragraph.",
+            "outgoing_links": ["https://anothertesturl.com/urltest"],
+            "image_urls": []
+        }
+        actual = extract_page_data(html, input_url)
+        self.assertEqual(actual, expected)
+
+    def test_extract_page_data_four(self):
+        input_url  = "https://anothertesturl.com"
+        input_html = '''
+            <html>
+                <body>
+                    <main>
+                        <h1>This is the first header</h1>
+                        <p>This is text from first paragraph.</p>
+                    </main>
+                    <h2>This is the second header</h1>
+                    <a src="/urltest">Go to Boot.dev</a>
+                    <img src="/logo.png" alt="Boot.dev Logo" />
+                </body>
+            </html>
+        '''
+        html = BeautifulSoup(input_html, 'html.parser')
+        expected = {
+            "url": "https://anothertesturl.com",
+            "heading": "This is the first header",
+            "first_paragraph": "This is text from first paragraph.",
+            "outgoing_links": [],
+            "image_urls": ["https://anothertesturl.com/logo.png"]
+        }
+        actual = extract_page_data(html, input_url)
+        self.assertEqual(actual, expected)
+
+    def test_extract_page_data_five(self):
+        input_url  = "https://anothertesturl.com"
+        input_html = '''
+            <html>
+                <body>
+                    <main>
+                        <p>This is text from first paragraph.</p>
+                    </main>
+                    <a href="/urltest">Go to Boot.dev</a>
+                    <img src="/logo.png" alt="Boot.dev Logo" />
+                </body>
+            </html>
+        '''
+        html = BeautifulSoup(input_html, 'html.parser')
+        expected = {
+            "url": "https://anothertesturl.com",
+            "heading": "",
+            "first_paragraph": "This is text from first paragraph.",
+            "outgoing_links": ["https://anothertesturl.com/urltest"],
+            "image_urls": ["https://anothertesturl.com/logo.png"]
+        }
+        actual = extract_page_data(html, input_url)
+        self.assertEqual(actual, expected)
+
+    def test_extract_page_data_six(self):
+        input_url  = "https://anothertesturl.com"
+        input_html = '''
+            <html>
+                <body>
+                    <main>
+                        <h2>This is the second header</h1>
+                    </main>
+                    <a href="/urltest">Go to Boot.dev</a>
+                    <img src="/logo.png" alt="Boot.dev Logo" />
+                </body>
+            </html>
+        '''
+        html = BeautifulSoup(input_html, 'html.parser')
+        expected = {
+            "url": "https://anothertesturl.com",
+            "heading": "This is the second header",
+            "first_paragraph": "",
+            "outgoing_links": ["https://anothertesturl.com/urltest"],
+            "image_urls": ["https://anothertesturl.com/logo.png"]
+        }
+        actual = extract_page_data(html, input_url)
+        self.assertEqual(actual, expected)
+
 if __name__ == "__main__":
     unittest.main()

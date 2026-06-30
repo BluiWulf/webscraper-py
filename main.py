@@ -1,18 +1,24 @@
 
+import sys
+
 from crawl import *
 from bs4 import BeautifulSoup, Tag
 
 def main():
-    input_url = "test.html"
+    if len(sys.argv) < 2:
+        print("\nno website provided\n")
+        sys.exit(1)
+    elif len(sys.argv) > 2:
+        print("\ntoo many arguments provided\n")
+        sys.exit(1)
+
+    input_url = sys.argv[1]
     normal_url = normalize_url(input_url)
 
-    with open(normal_url) as html_file:
-        html = BeautifulSoup(html_file, 'html.parser')
+    print(f'\nstarting crawl of: "{input_url}"\n')
+    html = get_html(input_url)
 
-    test_url = "https://crawler-test.com"
-    urls = get_images_from_html(html, test_url)
-    for url in urls:
-        print(url)
+    print(html)
 
 if __name__ == "__main__":
     main()

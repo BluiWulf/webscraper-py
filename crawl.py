@@ -1,8 +1,10 @@
 
 import re
+import requests
 
 from urllib.parse import *
 from bs4 import BeautifulSoup, Tag
+from pagedata import PageData
 
 def normalize_url(input_url: str) -> str:
     url_Parts = tuple(urlparse(input_url))
@@ -11,6 +13,24 @@ def normalize_url(input_url: str) -> str:
         normal_url += part
 
     return normal_url.lower().rstrip("/")
+
+def get_html(url: str) -> str:
+    try:
+        res = requests.get(url, headers = {"User-Agent": "BootCrawler/1.0"})
+        if res.status_code >= 400:
+            res.raise_for_status()
+        if res.headers['content-type'] != "text/html":
+            raise Exception("content-type is not text/html")
+    
+        return str(res.content)
+    except requests.ConnectionError as ex:
+        print(f'ConnectionError occurred: {str(ex)}')
+    except requests.TooManyRedirects as ex:
+        print(f'TooManyRedirects exception occurred: {str(ex)}')
+    except requests.Timeout as ex:
+        print(f'Timeout exception occurred: {str(ex)}')
+    except requests.RequestException as ex:
+        print(f'RequestException occurred: {str(ex)}')
 
 def get_heading_from_html(html: BeautifulSoup) -> str:
     header = html.find(re.compile('h\\d+'))
@@ -33,7 +53,7 @@ def get_urls_from_html(html: BeautifulSoup, base_url: str):
         try:
             urls.append(urljoin(base_url, link['href']))
         except Exception as ex:
-            print(f"{str(ex)}: {link['href']}")
+            print(f'{str(ex)}: "{link['href']}"')
 
     return urls
 
@@ -45,6 +65,15 @@ def get_images_from_html(html: BeautifulSoup, base_url: str):
         try:
             urls.append(urljoin(base_url, image['src']))
         except Exception as ex:
-            print(f"{str(ex)}: {image['href']}")
+            print(f'{str(ex)}: "{image['href']}"')
 
     return urls
+
+def extract_page_data(html: BeautifulSoup, page_url: str) -> PageData:
+    return {
+        "url": page_url,
+        "heading": get_heading_from_html(html),
+        "first_paragraph": get_first_paragraph_from_html(html),
+        "outgoing_links": get_urls_from_html(html, page_url),
+        "image_urls": get_images_from_html(html, page_url)
+    }
