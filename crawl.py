@@ -17,20 +17,15 @@ def normalize_url(input_url: str) -> str:
 def get_html(url: str) -> str:
     try:
         res = requests.get(url, headers = {"User-Agent": "BootCrawler/1.0"})
-        if res.status_code >= 400:
-            res.raise_for_status()
-        if res.headers['content-type'] != "text/html":
-            raise Exception("content-type is not text/html")
-    
-        return str(res.content)
-    except requests.ConnectionError as ex:
-        print(f'ConnectionError occurred: {str(ex)}')
-    except requests.TooManyRedirects as ex:
-        print(f'TooManyRedirects exception occurred: {str(ex)}')
-    except requests.Timeout as ex:
-        print(f'Timeout exception occurred: {str(ex)}')
-    except requests.RequestException as ex:
-        print(f'RequestException occurred: {str(ex)}')
+    except Exception as ex:
+        raise Exception(f'error while fetching "{url}": {str(ex)}')
+
+    if res.status_code >= 400:
+        res.raise_for_status()
+    if res.headers['content-type'] != "text/html":
+        raise Exception("content-type is not text/html")
+
+    return res.text
 
 def get_heading_from_html(html: BeautifulSoup) -> str:
     header = html.find(re.compile('h\\d+'))
