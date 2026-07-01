@@ -72,3 +72,21 @@ def extract_page_data(html: BeautifulSoup, page_url: str) -> PageData:
         "outgoing_links": get_urls_from_html(html, page_url),
         "image_urls": get_images_from_html(html, page_url)
     }
+
+def crawl_page(base_url, current_url = None, page_data = None):
+    if base_url not in current_url:
+        return
+    nrm_curr_url = normalize_url(current_url)
+    if nrm_curr_url in page_data:
+        return
+    
+    print(f'Fetching html data from: "{current_url}"')
+    try:
+        curr_html = get_html(current_url)
+        html_soup = BeautifulSoup(curr_html, 'html.parser')
+    except Exception as ex:
+        print(f'error fetching HTML from "{current_url}": {str(ex)}')
+
+    page_data[nrm_curr_url] = extract_page_data(html_soup, current_url)
+    for sub_url in page_data[nrm_curr_url]["outgoing_links"]:
+        crawl_page(base_url, sub_url, page_data)
