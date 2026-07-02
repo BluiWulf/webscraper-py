@@ -18,11 +18,11 @@ def get_html(url: str) -> str:
     try:
         res = requests.get(url, headers = {"User-Agent": "BootCrawler/1.0"})
     except Exception as ex:
-        raise Exception(f'error while fetching "{url}": {str(ex)}')
+        raise Exception(ex)
 
     if res.status_code >= 400:
         res.raise_for_status()
-    if res.headers['content-type'] != "text/html":
+    if "text/html" not in res.headers['Content-Type']:
         raise Exception("content-type is not text/html")
 
     return res.text
@@ -83,9 +83,9 @@ def crawl_page(base_url, current_url = None, page_data = None):
     print(f'Fetching html data from: "{current_url}"')
     try:
         curr_html = get_html(current_url)
-        html_soup = BeautifulSoup(curr_html, 'html.parser')
     except Exception as ex:
-        print(f'error fetching HTML from "{current_url}": {str(ex)}')
+        raise Exception(f'error fetching HTML from "{current_url}": {str(ex)}')
+    html_soup = BeautifulSoup(curr_html, 'html.parser')
 
     page_data[nrm_curr_url] = extract_page_data(html_soup, current_url)
     for sub_url in page_data[nrm_curr_url]["outgoing_links"]:
