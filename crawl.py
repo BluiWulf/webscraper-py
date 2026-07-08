@@ -1,6 +1,5 @@
 
 import re
-import requests
 
 from urllib.parse import *
 from bs4 import BeautifulSoup, Tag
@@ -13,19 +12,6 @@ def normalize_url(input_url: str) -> str:
         normal_url += part
 
     return normal_url.lower().rstrip("/")
-
-def get_html(url: str) -> str:
-    try:
-        res = requests.get(url, headers = {"User-Agent": "BootCrawler/1.0"})
-    except Exception as ex:
-        raise Exception(ex)
-
-    if res.status_code >= 400:
-        res.raise_for_status()
-    if "text/html" not in res.headers['Content-Type']:
-        raise Exception("content-type is not text/html")
-
-    return res.text
 
 def get_heading_from_html(html: BeautifulSoup) -> str:
     header = html.find(re.compile('h\\d+'))
@@ -72,21 +58,3 @@ def extract_page_data(html: BeautifulSoup, page_url: str) -> PageData:
         "outgoing_links": get_urls_from_html(html, page_url),
         "image_urls": get_images_from_html(html, page_url)
     }
-
-def crawl_page(base_url, current_url = None, page_data = None):
-    if base_url not in current_url:
-        return
-    nrm_curr_url = normalize_url(current_url)
-    if nrm_curr_url in page_data:
-        return
-    
-    print(f'Fetching html data from: "{current_url}"')
-    try:
-        curr_html = get_html(current_url)
-    except Exception as ex:
-        raise Exception(f'error fetching HTML from "{current_url}": {str(ex)}')
-    html_soup = BeautifulSoup(curr_html, 'html.parser')
-
-    page_data[nrm_curr_url] = extract_page_data(html_soup, current_url)
-    for sub_url in page_data[nrm_curr_url]["outgoing_links"]:
-        crawl_page(base_url, sub_url, page_data)

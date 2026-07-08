@@ -1,10 +1,11 @@
 
 import sys
+import asyncio
 
 from crawl import *
-from bs4 import BeautifulSoup, Tag
+from asynccrawler import crawl_site_async
 
-def main():
+async def main():
     if len(sys.argv) < 2:
         print("\nno website provided\n")
         sys.exit(1)
@@ -13,12 +14,11 @@ def main():
         sys.exit(1)
 
     base_url = sys.argv[1]
-    current_url = base_url
     crawler_data: dict[str, PageData] = {}
 
     print(f'\nStarting crawl of: "{base_url}"\n')
     try:
-        crawl_page(base_url, current_url, crawler_data)
+        crawler_data = await crawl_site_async(base_url, 5)
     except Exception as ex:
         print(f'\nwebcrawler error occurred: {str(ex)}\n')
         sys.exit(1)
@@ -29,4 +29,4 @@ def main():
     sys.exit(0)
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
