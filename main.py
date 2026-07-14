@@ -18,7 +18,7 @@ async def main():
 
     print(f'\nStarting crawl of: "{base_url}"\n')
     try:
-        crawler_data = await crawl_site_async(base_url, 5)
+        crawler_data = await crawl_site_async(base_url)
     except Exception as ex:
         print(f'\nwebcrawler error occurred: {str(ex)}\n')
         sys.exit(1)
